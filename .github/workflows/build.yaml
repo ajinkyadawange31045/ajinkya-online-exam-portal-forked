@@ -41,7 +41,6 @@
             docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         
         - name: Build, tag, and push the image to Amazon ECR
-          id: build-image
           working-directory : ./frontend
           env:
             ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
