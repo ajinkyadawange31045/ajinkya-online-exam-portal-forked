@@ -1,51 +1,53 @@
-  name: Push the Docker image to AWS ECR Repo
-  on:
-    push:
-      branches:
-        - dev
-  jobs:
-    Build:
-      name: Build
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v2
+name: Push the Docker image to AWS ECR Repo
+on:
+  push:
+    branches:
+      - dev
 
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ap-south-1
+jobs:
+  Build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-        - name: Login to Amazon ECR
-          id: login-ecr
-          uses: aws-actions/amazon-ecr-login@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
-        - name: Get commit hash
-          id: get-commit-hash
-          run: echo "::set-output name=commit-hash::$(git rev-parse --short HEAD)"
-        - name: Get timestamp
-          id: get-timestamp
-          run: echo "::set-output name=timestamp::$(date +'%Y-%m-%d-%H-%M')"
-        
-        - name: Build, tag, and push the image to Amazon ECR
-          id: build-image
-          working-directory : ./backend
-          env:
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: docker-practice
-            IMAGE_TAG: backend-${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
-          run: |
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        
-        - name: Build, tag, and push the image to Amazon ECR
-          working-directory : ./frontend
-          env:
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: docker-practice
-            IMAGE_TAG: frontend-${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
-          run: |
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Get latest two commit hashes
+        run: |
+          LATEST_COMMIT=$(git rev-parse --short HEAD)
+          PREVIOUS_COMMIT=$(git rev-parse --short HEAD~1)
+          echo "LATEST_COMMIT=$LATEST_COMMIT" >> $GITHUB_ENV
+          echo "PREVIOUS_COMMIT=$PREVIOUS_COMMIT" >> $GITHUB_ENV
+
+      - name: Build, tag, and push backend images to Amazon ECR
+        working-directory: ./backend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: docker-practice
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-${{ env.LATEST_COMMIT }} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-${{ env.LATEST_COMMIT }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-${{ env.PREVIOUS_COMMIT }} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-${{ env.PREVIOUS_COMMIT }}
+
+      - name: Build, tag, and push frontend images to Amazon ECR
+        working-directory: ./frontend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: docker-practice
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${{ env.LATEST_COMMIT }} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${{ env.LATEST_COMMIT }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${{ env.PREVIOUS_COMMIT }} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${{ env.PREVIOUS_COMMIT }}
