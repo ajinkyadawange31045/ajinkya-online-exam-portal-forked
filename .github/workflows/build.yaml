@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 2  # Fetch the last two commits to access the latest and previous commit hashes
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -35,19 +37,23 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: docker-practice
+          LATEST_COMMIT: ${{ env.LATEST_COMMIT }}
+          PREVIOUS_COMMIT: ${{ env.PREVIOUS_COMMIT }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-${{ env.LATEST_COMMIT }} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-${{ env.LATEST_COMMIT }}
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-${{ env.PREVIOUS_COMMIT }} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-${{ env.PREVIOUS_COMMIT }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-${LATEST_COMMIT} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-${LATEST_COMMIT}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-${PREVIOUS_COMMIT} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-${PREVIOUS_COMMIT}
 
       - name: Build, tag, and push frontend images to Amazon ECR
         working-directory: ./frontend
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: docker-practice
+          LATEST_COMMIT: ${{ env.LATEST_COMMIT }}
+          PREVIOUS_COMMIT: ${{ env.PREVIOUS_COMMIT }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${{ env.LATEST_COMMIT }} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${{ env.LATEST_COMMIT }}
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${{ env.PREVIOUS_COMMIT }} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${{ env.PREVIOUS_COMMIT }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${LATEST_COMMIT} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${LATEST_COMMIT}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${PREVIOUS_COMMIT} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${PREVIOUS_COMMIT}
