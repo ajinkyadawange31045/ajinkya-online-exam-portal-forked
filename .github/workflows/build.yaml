@@ -2,7 +2,7 @@
   on:
     push:
       branches:
-        - ajinkya
+        - dev
   jobs:
     Build:
       name: Build
