@@ -26,34 +26,35 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Get latest two commit hashes
+        id: commits
         run: |
-          LATEST_COMMIT=$(git rev-parse --short HEAD)
-          PREVIOUS_COMMIT=$(git rev-parse --short HEAD~1)
-          echo "LATEST_COMMIT=$LATEST_COMMIT" >> $GITHUB_ENV
-          echo "PREVIOUS_COMMIT=$PREVIOUS_COMMIT" >> $GITHUB_ENV
+          echo "LATEST_COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "PREVIOUS_COMMIT=$(git rev-parse --short HEAD~1)" >> $GITHUB_ENV
 
       - name: Build, tag, and push backend images to Amazon ECR
         working-directory: ./backend
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: docker-practice
-          LATEST_COMMIT: ${{ env.LATEST_COMMIT }}
-          PREVIOUS_COMMIT: ${{ env.PREVIOUS_COMMIT }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-${LATEST_COMMIT} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-${LATEST_COMMIT}
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-${PREVIOUS_COMMIT} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-${PREVIOUS_COMMIT}
+          LATEST_COMMIT=${{ env.LATEST_COMMIT }}
+          PREVIOUS_COMMIT=${{ env.PREVIOUS_COMMIT }}
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY=docker-practice
+
+          # Build and push images for latest and previous commits
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-$LATEST_COMMIT .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-$LATEST_COMMIT
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-$PREVIOUS_COMMIT .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-$PREVIOUS_COMMIT
 
       - name: Build, tag, and push frontend images to Amazon ECR
         working-directory: ./frontend
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: docker-practice
-          LATEST_COMMIT: ${{ env.LATEST_COMMIT }}
-          PREVIOUS_COMMIT: ${{ env.PREVIOUS_COMMIT }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${LATEST_COMMIT} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${LATEST_COMMIT}
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${PREVIOUS_COMMIT} .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-${PREVIOUS_COMMIT}
+          LATEST_COMMIT=${{ env.LATEST_COMMIT }}
+          PREVIOUS_COMMIT=${{ env.PREVIOUS_COMMIT }}
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY=docker-practice
+
+          # Build and push images for latest and previous commits
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$LATEST_COMMIT .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$LATEST_COMMIT
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$PREVIOUS_COMMIT .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$PREVIOUS_COMMIT
