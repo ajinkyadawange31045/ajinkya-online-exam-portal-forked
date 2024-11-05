@@ -1,13 +1,14 @@
-FROM node:13-alpine
+FROM node:18-alpine
 
-WORKDIR /usr/frontend
+WORKDIR /app/frontend
 
-COPY . .
-RUN rm -rf node_modules/ package-lock.json
+COPY package.json .
+
 RUN npm install
 
-RUN npm run build
+COPY . .
 
+EXPOSE 3000
 
-CMD ["sh", "-c", "npm start"]
+CMD ["npm", "start"]
 
