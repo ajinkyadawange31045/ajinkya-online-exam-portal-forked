@@ -1,21 +1,19 @@
 name: Push the Docker image to AWS ECR Repo
 
 on:
-  # push:
-  #   branches:
-  #     - dev
+  push:
+    branches:
+      - dev
 
-  workflow_dispatch:
-    inputs:
-      name:
-        type: choice
-        description: Which working directory to work on
-        options: 
-        - backend
-        - frontend
-        required: true
-      # message:
-      #   required: true
+  # workflow_dispatch:
+  #   inputs:
+  #     name:
+  #       type: choice
+  #       description: Which working directory to work on
+  #       options: 
+  #       - backend
+  #       - frontend
+  #       required: true 
 
 
 
