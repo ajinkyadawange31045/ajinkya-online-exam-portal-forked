@@ -49,14 +49,3 @@ jobs:
           # Build and push images for latest and previous commits with --no-cache to ensure unique images
           docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_COMMIT .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_COMMIT
-
-      # - name: Build, tag, and push frontend images to Amazon ECR
-      #   working-directory: ./frontend
-      #   run: |
-      #     LATEST_COMMIT=${{ env.LATEST_COMMIT }}
-      #     ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-      #     ECR_REPOSITORY=docker-practice
-
-      #     # Build and push images for latest and previous commits with --no-cache to ensure unique images
-      #     docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$LATEST_COMMIT .
-      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$LATEST_COMMIT
