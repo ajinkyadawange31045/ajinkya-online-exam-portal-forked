@@ -1,8 +1,19 @@
 name: Push the Docker image to AWS ECR Repo
+
 on:
-  push:
-    branches:
-      - dev
+  workflow_dispatch:
+    inputs:
+      name:
+        type: choice
+        description: Which working directory to work on
+        options: 
+        - backend
+        - frontend
+        required: true
+      # message:
+      #   required: true
+
+
 
 jobs:
   Build:
@@ -12,7 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 2  # Fetch the last two commits to access the latest and previous commit hashes
+          fetch-depth: 2  # Fetching last two commits to access -> latest and previous commit hashes
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -28,33 +39,28 @@ jobs:
       - name: Get latest two commit hashes
         id: commits
         run: |
-          echo "LATEST_COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "PREVIOUS_COMMIT=$(git rev-parse --short HEAD~1)" >> $GITHUB_ENV
+          echo "LATEST_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
-      - name: Build, tag, and push backend images to Amazon ECR
-        working-directory: ./backend
+      - name: Build, tag, and push backend or frontend images to Amazon ECR using inputs
+        # working-directory: ./backend
+        working-directory: ./${{ github.event.inputs.name }}
         run: |
-          LATEST_COMMIT=${{ env.LATEST_COMMIT }}
-          PREVIOUS_COMMIT=${{ env.PREVIOUS_COMMIT }}
+          LATEST_COMMIT=${{ github.event.inputs.name }}-${{ env.LATEST_COMMIT }}
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY=docker-practice
+          ECR_REPOSITORY=docker-practice  
+            # docker-practice name of repo
 
           # Build and push images for latest and previous commits with --no-cache to ensure unique images
-          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-$LATEST_COMMIT .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-$LATEST_COMMIT
-          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-$PREVIOUS_COMMIT .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-$PREVIOUS_COMMIT
+          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_COMMIT .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_COMMIT
 
-      - name: Build, tag, and push frontend images to Amazon ECR
-        working-directory: ./frontend
-        run: |
-          LATEST_COMMIT=${{ env.LATEST_COMMIT }}
-          PREVIOUS_COMMIT=${{ env.PREVIOUS_COMMIT }}
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY=docker-practice
+      # - name: Build, tag, and push frontend images to Amazon ECR
+      #   working-directory: ./frontend
+      #   run: |
+      #     LATEST_COMMIT=${{ env.LATEST_COMMIT }}
+      #     ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY=docker-practice
 
-          # Build and push images for latest and previous commits with --no-cache to ensure unique images
-          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$LATEST_COMMIT .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$LATEST_COMMIT
-          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$PREVIOUS_COMMIT .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$PREVIOUS_COMMIT
+      #     # Build and push images for latest and previous commits with --no-cache to ensure unique images
+      #     docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$LATEST_COMMIT .
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$LATEST_COMMIT
