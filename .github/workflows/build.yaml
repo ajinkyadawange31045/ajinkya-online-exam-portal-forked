@@ -32,20 +32,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Get latest two commit hashes
+      - name: Get latest commit hash
         id: commits
         run: |
           echo "LATEST_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Build, tag, and push backend or frontend images to Amazon ECR using inputs
-        # working-directory: ./backend
         working-directory: ./${{ github.event.inputs.name }}
         run: |
           LATEST_COMMIT=${{ github.event.inputs.name }}-${{ env.LATEST_COMMIT }}
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY=docker-practice  
-            # docker-practice name of repo
+          ECR_REPOSITORY=docker-practice  # Repository name in ECR
 
-          # Build and push images for latest and previous commits with --no-cache to ensure unique images
+          # Build and push image with unique tag
           docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_COMMIT .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_COMMIT
