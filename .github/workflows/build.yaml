@@ -10,9 +10,7 @@ on:
         - backend
         - frontend
         required: true 
-
-
-
+        
 jobs:
   Build:
     name: Build
