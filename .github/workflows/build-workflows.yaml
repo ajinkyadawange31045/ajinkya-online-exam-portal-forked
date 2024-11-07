@@ -1,9 +1,9 @@
-name: Push the Docker image to AWS ECR Repo
+name: Push the Docker image to AWS ECR Repo using github actions
 
 on:
   workflow_dispatch:
     inputs:
-      name:
+      name-ajinkya:
         type: choice
         description: Which working directory to work on
         options: 
@@ -36,9 +36,9 @@ jobs:
           echo "LATEST_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Build, tag, and push backend or frontend images to Amazon ECR using inputs
-        working-directory: ./${{ github.event.inputs.name }}
+        working-directory: ./${{ github.event.inputs.name-ajinkya }}
         run: |
-          LATEST_COMMIT=${{ github.event.inputs.name }}-${{ env.LATEST_COMMIT }}
+          LATEST_COMMIT=${{ github.event.inputs.name-ajinkya }}-${{ env.LATEST_COMMIT }}
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY=docker-practice  # Repository name in ECR
 
