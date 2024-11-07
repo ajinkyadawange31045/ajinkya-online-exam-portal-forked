@@ -10,7 +10,7 @@ on:
         - backend
         - frontend
         required: true 
-
+#for commiting check
 jobs:
   Build:
     name: Build
