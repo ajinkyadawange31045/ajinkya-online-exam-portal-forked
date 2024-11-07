@@ -1,4 +1,4 @@
-name: Push the Docker image to AWS ECR Repo using GitHub Actions
+name: Push the Docker image to AWS ECR Repo using github actions
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
         - backend
         - frontend
         required: true 
-#for commiting check
+        
 jobs:
   Build:
     name: Build
@@ -18,8 +18,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 2  # Fetching last two commits to access latest and previous commit hashes
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -32,22 +30,10 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Get latest and previous commit hashes
+      - name: Get latest commit hash
         id: commits
         run: |
           echo "LATEST_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
-          echo "PREVIOUS_COMMIT=$(git rev-parse HEAD^)" >> $GITHUB_ENV
-
-      - name: Delete image from ECR with previous commit tag (if exists)
-        run: |
-          PREVIOUS_COMMIT=${{ env.PREVIOUS_COMMIT }}
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY=docker-practice  # Repository name in ECR
-
-          # Delete the previous image tagged with PREVIOUS_COMMIT if it exists
-          aws ecr batch-delete-image \
-            --repository-name $ECR_REPOSITORY \
-            --image-ids imageTag=${{ github.event.inputs.name_ajinkya }}-$PREVIOUS_COMMIT || echo "No previous image to delete"
 
       - name: Build, tag, and push backend or frontend images to Amazon ECR using inputs
         working-directory: ./${{ github.event.inputs.name_ajinkya }}
@@ -56,6 +42,18 @@ jobs:
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY=docker-practice  # Repository name in ECR
 
-          # Build and push image with unique tag for the latest commit
+          # Build and push image with unique tag
           docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_COMMIT .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$LATEST_COMMIT
+
+
+
+
+
+
+
+
+
+
+
+
