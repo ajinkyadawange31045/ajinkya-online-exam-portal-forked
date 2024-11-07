@@ -1,10 +1,10 @@
 name: Push the Docker image to AWS ECR Repo
 
 on:
-  push:
-    branches:
-      - dev
-      
+  # push:
+  #   branches:
+  #     - dev
+
   workflow_dispatch:
     inputs:
       name:
